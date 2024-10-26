@@ -1,0 +1,36 @@
+name: Go CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "^1.22"
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Code Quality - Vet
+        run: go vet ./...
+
+      - name: Code Quality - Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: "--timeout=5m0s"
+
+      - name: Security Scan - Gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest && gosec ./...
+
+      - name: Run tests
+        run: go test -v -cover ./...
